@@ -3,6 +3,8 @@ set -euo pipefail
 
 TEMPLATE_URL="https://raw.githubusercontent.com/B3hnamR/3x-ui-sub-template/main/index.html"
 INSTALL_DIR="/etc/3x-ui/sub_templates/my-theme"
+MIN_VERSION="3.3.0"   # custom sub templates landed in 3x-ui v3.3.0 (PR #5079)
+XUI_BIN="/usr/local/x-ui/x-ui"
 
 # ── colors ────────────────────────────────────────────────────────────
 R='\033[0;31m' G='\033[0;32m' Y='\033[1;33m' C='\033[0;36m' B='\033[1m' N='\033[0m'
@@ -20,6 +22,31 @@ ask() {
   read -r var
   echo "${var:-$default}"
 }
+
+# ── detect 3x-ui ──────────────────────────────────────────────────────
+if [[ ! -x "$XUI_BIN" ]] && ! command -v x-ui >/dev/null 2>&1; then
+  echo -e "${R}  ✖ 3x-ui is not installed on this server.${N}"
+  echo -e "    Install it first: ${C}https://github.com/MHSanaei/3x-ui${N}"
+  exit 1
+fi
+
+PANEL_VERSION=""
+if [[ -x "$XUI_BIN" ]]; then
+  PANEL_VERSION=$("$XUI_BIN" -v 2>/dev/null | head -1 | tr -dc '0-9.')
+fi
+
+if [[ -n "$PANEL_VERSION" ]]; then
+  if [[ "$(printf '%s\n%s\n' "$MIN_VERSION" "$PANEL_VERSION" | sort -V | head -1)" != "$MIN_VERSION" ]]; then
+    echo -e "${R}  ✖ 3x-ui v${PANEL_VERSION} detected — custom templates need v${MIN_VERSION}+.${N}"
+    echo -e "    Update the panel first: run ${C}x-ui${N} and choose Update."
+    exit 1
+  fi
+  echo -e "${G}  ✔ 3x-ui v${PANEL_VERSION} detected (templates supported)${N}"
+else
+  echo -e "${Y}  ⚠ 3x-ui found, but version could not be determined.${N}"
+  echo -e "    Custom templates require v${MIN_VERSION}+ — continuing anyway."
+fi
+echo
 
 echo -e "${C}── Customize ─────────────────────────────────────────────────────${N}"
 BRAND=$(ask    "Brand name (shown when panel Sub Title is empty)" "My VPN")

@@ -19,13 +19,15 @@ A modern, self-contained subscription page template for [3x-ui](https://github.c
 
 ## Install
 
+> **Requires 3x-ui v3.3.0+** (custom subscription templates were added in [v3.3.0](https://github.com/MHSanaei/3x-ui/releases/tag/v3.3.0)). The live online/offline badge uses the `?format=info` endpoint from newer builds — on older panels the badge simply shows the render-time status.
+
 **One-liner** — paste this on your server (replace the URL if you forked the repo):
 
 ```bash
 sudo mkdir -p /etc/3x-ui/sub_templates/my-theme && sudo curl -fsSL https://raw.githubusercontent.com/B3hnamR/3x-ui-sub-template/main/index.html -o /etc/3x-ui/sub_templates/my-theme/index.html && sudo chmod 755 /etc/3x-ui/sub_templates /etc/3x-ui/sub_templates/my-theme && sudo chmod 644 /etc/3x-ui/sub_templates/my-theme/index.html
 ```
 
-**Or use the interactive setup script** — asks for your brand name, Telegram channel, support link, and language, then installs and backs up any existing template automatically:
+**Or use the interactive setup script** — detects your 3x-ui installation and version, asks for your brand name, Telegram channel, support link, and language, then installs and backs up any existing template automatically:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/B3hnamR/3x-ui-sub-template/main/install.sh)
