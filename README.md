@@ -19,13 +19,15 @@ A modern, self-contained subscription page template for [3x-ui](https://github.c
 
 ## Install
 
+> **Requires 3x-ui v3.3.0+** (custom subscription templates were added in [v3.3.0](https://github.com/MHSanaei/3x-ui/releases/tag/v3.3.0)). The live online/offline badge uses the `?format=info` endpoint from newer builds — on older panels the badge simply shows the render-time status.
+
 **One-liner** — paste this on your server (replace the URL if you forked the repo):
 
 ```bash
 sudo mkdir -p /etc/3x-ui/sub_templates/my-theme && sudo curl -fsSL https://raw.githubusercontent.com/B3hnamR/3x-ui-sub-template/main/index.html -o /etc/3x-ui/sub_templates/my-theme/index.html && sudo chmod 755 /etc/3x-ui/sub_templates /etc/3x-ui/sub_templates/my-theme && sudo chmod 644 /etc/3x-ui/sub_templates/my-theme/index.html
 ```
 
-**Or use the interactive setup script** — asks for your brand name, Telegram channel, support link, and language, then installs and backs up any existing template automatically:
+**Or use the interactive setup script** — detects your 3x-ui installation and version, asks for your brand name, Telegram channel, support link, and language, then installs and backs up any existing template automatically:
 
 ```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/B3hnamR/3x-ui-sub-template/main/install.sh)
@@ -54,7 +56,15 @@ Everything lives at the top of `index.html`:
 
 The brand name is only used when the panel's *Sub Title* is empty — set the title in the panel and it takes over automatically.
 
-## Notes
+## 💖 Support the project
 
-- The QR code generator (qrcodejs, MIT) is embedded in the file itself — no CDN, works even where CDNs are blocked.
-- Requires JavaScript (like every VPN client-facing sub page, this is HTML-view only — raw Base64/JSON/Clash output is untouched).
+If this template has been useful to you, donations help fund ongoing development, testing, and maintenance.
+
+| Asset / network | Donation address |
+|---|---|
+| TRON | `TVEKp9cAU97PGfvWse7BxseeiwfCVyRef4` |
+| USDT - TRC20 | `TVEKp9cAU97PGfvWse7BxseeiwfCVyRef4` |
+| USDT - BEP20 | `0x34E90a9476028F15064EE8fa6aa7c1b4dDE3f480` |
+| TON | `UQAuXUNyd4Sfvhm59Ef27UNC46oEBrVys5Ud7VLzqZOj5O13` |
+
+> ⚠️ **Important:** Please verify both the asset and network before sending. Blockchain transfers are irreversible.
