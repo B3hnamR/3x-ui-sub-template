@@ -13,13 +13,23 @@ A modern, self-contained subscription page template for [3x-ui](https://github.c
 - 📅 Jalali (شمسی) dates in Persian mode, Gregorian in English
 - 🔗 Copy buttons for subscription / JSON / Clash links + QR code (generator embedded — works offline/with blocked CDNs)
 - 📱 One-tap import: v2rayNG, Hiddify, Streisand, Shadowrocket, Happ, FlClash (editable list)
-- 🟢 Live online/offline status badge — auto-refreshes every 30s via the panel's `?format=info` endpoint
+- 🟢 Live online/offline status badge — auto-refreshes every 30s via the panel's `?format=info` endpoint (v3.6.0+)
 - 📢 Announcement banner, support button, per-config list with copy
 - 📦 Single `index.html` file — no assets, no build step
 
 ## Install
 
-> **Requires 3x-ui v3.3.0+** (custom subscription templates were added in [v3.3.0](https://github.com/MHSanaei/3x-ui/releases/tag/v3.3.0)). The live online/offline badge uses the `?format=info` endpoint from newer builds — on older panels the badge simply shows the render-time status.
+> **Requires 3x-ui v3.3.0+** — custom subscription templates were added in [v3.3.0](https://github.com/MHSanaei/3x-ui/releases/tag/v3.3.0).
+> **Verified against [v3.6.0](https://github.com/MHSanaei/3x-ui/releases/tag/v3.6.0)**: that release rebuilt the default subscription page as a React SPA, but custom themes still take precedence over it and the [template variables](https://github.com/MHSanaei/3x-ui/blob/main/docs/custom-subscription-templates.md) are unchanged.
+
+The template targets the newest panel and degrades cleanly on older ones — unavailable variables render empty rather than erroring, so nothing breaks:
+
+| Panel | Result |
+|---|---|
+| **v3.6.0+** | Everything, including the live online/offline badge (`{{ .isOnline }}` + `?format=info`) |
+| **v3.5.x** | No live badge — status shows "offline". Announcement banner works. |
+| **v3.3.0 – v3.4.x** | No live badge, no announcement banner (`{{ .announce }}` arrived in v3.5.0) |
+| **< v3.3.0** | Not supported — no custom template feature at all |
 
 **One-liner** — paste this on your server (replace the URL if you forked the repo):
 
@@ -33,19 +43,29 @@ sudo mkdir -p /etc/3x-ui/sub_templates/my-theme && sudo curl -fsSL https://raw.g
 bash <(curl -fsSL https://raw.githubusercontent.com/B3hnamR/3x-ui-sub-template/main/install.sh)
 ```
 
-The script asks a few questions, downloads the template, fills in your answers, backs up any existing `index.html` in the theme folder, and installs. Run it again anytime to reconfigure — it always backs up before replacing.
+The script asks a few questions, downloads the template, fills in your answers, backs up any existing `index.html` in the theme folder, and installs. It also moves aside a stray `sub.html` if it finds one, since the panel loads that in preference to `index.html`. Run it again anytime to reconfigure — it always backs up before replacing.
 
-Then in the panel: **Settings → Subscription → Information → Sub Theme Directory**
+Then in the panel: **Settings → Subscription → Profile → Sub Theme Directory**
+
+> On v3.5.0 and older that tab is labelled **Information** instead of **Profile** — same field.
 
 ```
 /etc/3x-ui/sub_templates/my-theme/
 ```
 
-Save and restart the panel, then open your sub link with `?html=1` to see the page:
+Save and restart the panel, then open your sub link in a browser:
 
 ```
-https://your-domain:2096/sub/SUB_ID?html=1
+https://your-domain:2096/sub/SUB_ID
 ```
+
+Any browser gets the page automatically (the panel detects `Accept: text/html`). Append `?html=1` to force it from tools like `curl`:
+
+```
+curl 'https://your-domain:2096/sub/SUB_ID?html=1'
+```
+
+> If the theme folder also contains a `sub.html`, the panel loads **that** instead of `index.html` — delete it if you installed with the one-liner above. The panel re-reads the file whenever its modification time changes, so edits show up without a restart.
 
 ## Customize
 

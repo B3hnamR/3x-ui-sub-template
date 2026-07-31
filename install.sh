@@ -4,6 +4,7 @@ set -euo pipefail
 TEMPLATE_URL="https://raw.githubusercontent.com/B3hnamR/3x-ui-sub-template/main/index.html"
 INSTALL_DIR="/etc/3x-ui/sub_templates/my-theme"
 MIN_VERSION="3.3.0"   # custom sub templates landed in 3x-ui v3.3.0 (PR #5079)
+LIVE_VERSION="3.6.0"  # {{ .isOnline }} + ?format=info landed in v3.6.0
 XUI_BIN="/usr/local/x-ui/x-ui"
 
 # ── colors ────────────────────────────────────────────────────────────
@@ -30,18 +31,33 @@ if [[ ! -x "$XUI_BIN" ]] && ! command -v x-ui >/dev/null 2>&1; then
   exit 1
 fi
 
+# true when $1 is strictly older than $2
+version_lt() { [[ "$1" != "$2" && "$(printf '%s\n%s\n' "$1" "$2" | sort -V | head -1)" == "$1" ]]; }
+
+RAW_VERSION=""
 PANEL_VERSION=""
 if [[ -x "$XUI_BIN" ]]; then
-  PANEL_VERSION=$("$XUI_BIN" -v 2>/dev/null | head -1 | tr -dc '0-9.')
+  RAW_VERSION=$("$XUI_BIN" -v 2>/dev/null | head -1 | tr -d '[:space:]')
+fi
+# dev builds report "dev+<sha>" — only treat a real x.y.z as a comparable version
+if [[ "$RAW_VERSION" =~ ^v?([0-9]+\.[0-9]+(\.[0-9]+)?) ]]; then
+  PANEL_VERSION="${BASH_REMATCH[1]}"
 fi
 
 if [[ -n "$PANEL_VERSION" ]]; then
-  if [[ "$(printf '%s\n%s\n' "$MIN_VERSION" "$PANEL_VERSION" | sort -V | head -1)" != "$MIN_VERSION" ]]; then
+  if version_lt "$PANEL_VERSION" "$MIN_VERSION"; then
     echo -e "${R}  ✖ 3x-ui v${PANEL_VERSION} detected — custom templates need v${MIN_VERSION}+.${N}"
     echo -e "    Update the panel first: run ${C}x-ui${N} and choose Update."
     exit 1
   fi
   echo -e "${G}  ✔ 3x-ui v${PANEL_VERSION} detected (templates supported)${N}"
+  if version_lt "$PANEL_VERSION" "$LIVE_VERSION"; then
+    echo -e "${Y}  ⚠ Live online/offline badge needs v${LIVE_VERSION}+ — it will show 'offline' on this panel.${N}"
+    echo -e "    Everything else works. Update the panel to enable it."
+  fi
+elif [[ -n "$RAW_VERSION" ]]; then
+  echo -e "${Y}  ⚠ 3x-ui reports '${RAW_VERSION}' (dev build?) — skipping the version check.${N}"
+  echo -e "    Custom templates require v${MIN_VERSION}+ — continuing anyway."
 else
   echo -e "${Y}  ⚠ 3x-ui found, but version could not be determined.${N}"
   echo -e "    Custom templates require v${MIN_VERSION}+ — continuing anyway."
@@ -99,6 +115,13 @@ if [[ -f "${INSTALL_DIR}/index.html" ]]; then
   echo -e "${Y}  ↳ Backup saved: ${BACKUP}${N}"
 fi
 
+# the panel prefers sub.html over index.html — move any stray one aside
+if [[ -f "${INSTALL_DIR}/sub.html" ]]; then
+  SHADOW="${INSTALL_DIR}/sub.html.bak.$(date +%Y%m%d_%H%M%S)"
+  sudo mv "${INSTALL_DIR}/sub.html" "$SHADOW"
+  echo -e "${Y}  ↳ Existing sub.html would shadow index.html — moved to: ${SHADOW}${N}"
+fi
+
 sudo cp "$TMP" "${INSTALL_DIR}/index.html"
 sudo chmod 755 "$INSTALL_DIR"
 sudo chmod 644 "${INSTALL_DIR}/index.html"
@@ -109,9 +132,15 @@ echo
 echo -e "${G}  ✔ Template installed successfully!${N}"
 echo
 echo -e "${B}  Panel setting:${N}"
-echo -e "  Settings → Subscription → Information → Sub Theme Directory"
+if [[ -n "$PANEL_VERSION" ]] && version_lt "$PANEL_VERSION" "3.6.0"; then
+  echo -e "  Settings → Subscription → Information → Sub Theme Directory"
+else
+  echo -e "  Settings → Subscription → Profile → Sub Theme Directory"
+fi
 echo -e "  ${C}${INSTALL_DIR}/${N}"
+echo -e "  Save, then restart the panel."
 echo
 echo -e "${B}  Preview your page:${N}"
-echo -e "  ${C}https://your-domain:2096/sub/SUB_ID?html=1${N}"
+echo -e "  ${C}https://your-domain:2096/sub/SUB_ID${N}"
+echo -e "  (browsers get it automatically; add ${C}?html=1${N} to force it from curl)"
 echo
